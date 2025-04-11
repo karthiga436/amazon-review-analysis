@@ -1,0 +1,23 @@
+import streamlit as st
+from model_roberta import load_model, analyze_sentiment
+from utils import load_reviews, preprocess_text
+
+st.title("📦 Amazon Product Review Analyzer")
+
+model = load_model()
+
+option = st.radio("Choose input type:", ["Type your review", "Use sample dataset"])
+
+if option == "Type your review":
+    user_input = st.text_area("Enter review:")
+    if st.button("Analyze"):
+        if user_input:
+            label, score = analyze_sentiment(preprocess_text(user_input), model)
+            st.write(f"**Sentiment:** {label}")
+            st.write(f"**Confidence:** {score:.2f}")
+else:
+    df = load_reviews("data/sample_reviews.csv")
+    st.dataframe(df.head())
+    if st.button("Analyze All"):
+        df['Sentiment'] = df['review'].apply(lambda x: analyze_sentiment(preprocess_text(x), model)[0])
+        st.dataframe(df[['review', 'Sentiment']])
